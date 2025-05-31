@@ -266,8 +266,6 @@ def esummary_ncbi(database: str, uids: list[str], retmax: int = 5) -> str:
         response.raise_for_status()
         data = response.json()
         if "result" in data:
-            # The structure of 'result' can vary. For 'gene', UIDs are keys.
-            # For others, it might be a list or different structure.
             # This provides the raw result for the given UIDs.
             summaries = {
                 k: v for k, v in data["result"].items() if k != "uids"
@@ -328,9 +326,8 @@ def efetch_ncbi(
         url = f"{NCBI_BASE_URL}efetch.fcgi"
         response = requests.get(
             url, params=params, timeout=60
-        )  # Increased timeout for potentially large data
+        )
         response.raise_for_status()
-        # Efetch often returns plain text or XML, not JSON, so we return the text content directly
         content = response.text
         print(
             f"TOOL RESULT: efetch_ncbi successful for UIDs: {ids_str}. Content length: {len(content)}"

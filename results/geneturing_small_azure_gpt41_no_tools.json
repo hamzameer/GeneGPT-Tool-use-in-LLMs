@@ -1,0 +1,65 @@
+{
+    "Gene alias": {
+        "What is the official gene symbol of LMP10?": {
+            "answer": "PSMB10",
+            "thoughts": "The user is asking for the official gene symbol corresponding to 'LMP10'. My plan is: 1. Use `esearch_ncbi` with `database='gene'` and `term='LMP10'` to get the gene UID. 2. Use `esummary_ncbi` with this UID to retrieve the gene details. 3. Find the 'nomenclaturesymbol' or official gene symbol field in the summary. 4. Provide this as the answer.",
+            "prediction": "PSMB10"
+        }
+    },
+    "Gene disease association": {
+        "What are genes related to Hemolytic anemia due to phosphofructokinase deficiency?": {
+            "answer": "PFKL",
+            "thoughts": "The user wants to know what genes are associated with 'Hemolytic anemia due to phosphofructokinase deficiency'. This is likely a rare inherited disorder caused by mutations in a gene encoding a key enzyme in glycolysis, namely phosphofructokinase. My plan is: 1. Use esearch_ncbi with database='omim' and term='Hemolytic anemia due to phosphofructokinase deficiency' to identify relevant OMIM entries. 2. Use esummary_ncbi with resulting UIDs to get detailed information and look for gene symbol(s) linked to this condition. Typically, for phosphofructokinase deficiency (Glycogen storage disease type VII or Tarui disease), the gene involved is PFKM.",
+            "prediction": "PFKM"
+        }
+    },
+    "Gene location": {
+        "Which chromosome is FAM66D gene located on human genome?": {
+            "answer": "chr8",
+            "thoughts": "The user is asking for the chromosomal location of the FAM66D gene in the human genome. My plan is: 1. Use esearch_ncbi with 'database=gene' and 'term=FAM66D' to retrieve the gene's UID. 2. Use esummary_ncbi with that UID to get details about the gene. 3. Extract the chromosome information from the gene summary, typically found in the 'chromosome' field or 'genomicinfo' section.",
+            "prediction": "chr8"
+        }
+    },
+    "Human genome DNA aligment": {
+        "Align the DNA sequence to the human genome:ATTCTGCCTTTAGTAATTTGATGACAGAGACTTCTTGGGAACCACAGCCAGGGAGCCACCCTTTACTCCACCAACAGGTGGCTTATATCCAATCTGAGAAAGAAAGAAAAAAAAAAAAGTATTTCTCT": {
+            "answer": "chr15:91950805-91950932",
+            "thoughts": "The user provided a DNA sequence and wants its alignment location on the human genome. My plan: 1. Use `blast_put` with the input sequence against a human genome database using BLASTN. 2. Retrieve results using `blast_get` with the RID. 3. Parse the BLAST top hit to find the exact chromosomal coordinates for the best alignment.",
+            "prediction": "chr2:236478918-236479068"
+        }
+    },
+    "Multi-species DNA aligment": {
+        "Which organism does the DNA sequence come from:AGGGGCAGCAAACACCGGGACACACCCATTCGTGCACTAATCAGAAACTTTTTTTTCTCAAATAATTCAAACAATCAAAATTGGTTTTTTCGAGCAAGGTGGGAAATTTTTCGAT": {
+            "answer": "worm",
+            "thoughts": "The user wants to know the organism source of a DNA sequence. My plan is: 1. Use `blast_put` with the given sequence, using `program='blastn'` and `database='nt'` to identify similar sequences. 2. Use `blast_get` with the RID from `blast_put`. 3. Parse the top BLAST hit to identify the organism associated with the best matching region of the sequence.",
+            "prediction": "Homo sapiens"
+        }
+    },
+    "Gene name conversion": {
+        "Convert ENSG00000215251 to official gene symbol.": {
+            "answer": "FASTKD5",
+            "thoughts": "The user has provided an Ensembl gene ID (ENSG00000215251) and wants its official gene symbol. My plan is: 1. Query NCBI Gene using the Ensembl ID as a search term via esearch_ncbi with database='gene' and term='ENSG00000215251'. 2. Use esummary_ncbi on the resulting UID. 3. Extract the official gene symbol from the summary.",
+            "prediction": "MIR6859-1"
+        }
+    },
+    "Protein-coding genes": {
+        "Is ATP5F1EP2 a protein-coding gene?": {
+            "answer": "NA",
+            "thoughts": "The user is asking if ATP5F1EP2 is a protein-coding gene. My approach is: 1. Use esearch_ncbi with database='gene' and term='ATP5F1EP2' to get the gene ID. 2. Use esummary_ncbi with the returned ID to get detailed gene information. 3. Examine the summary for gene type (biotype), which tells if it is protein-coding or not. According to NCBI, genes ending with 'P' typically indicate pseudogenes, but I will confirm from the summary.",
+            "prediction": "No, ATP5F1EP2 is a pseudogene and not a protein-coding gene."
+        }
+    },
+    "Gene SNP association": {
+        "Which gene is SNP rs1217074595 associated with?": {
+            "answer": "LINC01270",
+            "thoughts": "The user asks for the gene associated with SNP rs1217074595. My approach: 1. Use `esearch_ncbi` on the 'snp' database with term 'rs1217074595' to get the UID. 2. Use `esummary_ncbi` with this UID to obtain SNP details. 3. From the summary, extract the gene symbol or associated gene information if available.",
+            "prediction": "KCNQ1"
+        }
+    },
+    "SNP location": {
+        "Which chromosome does SNP rs1430464868 locate on human genome?": {
+            "answer": "chr13",
+            "thoughts": "The user wants to know the chromosome location of SNP rs1430464868. My plan is: 1. Use `esearch_ncbi` with `database='snp'` and `term='rs1430464868'` to get the UID. 2. Use `esummary_ncbi` with the UID. 3. Extract the chromosome information from the SNP summary, typically available in fields like 'chromosome' or 'chrom'.",
+            "prediction": "chr5"
+        }
+    }
+}

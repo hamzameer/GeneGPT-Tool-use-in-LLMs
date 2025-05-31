@@ -9,5 +9,4 @@ python -m src.main \
     --dataset_path data/geneturing.json \
     --provider azure \
     --model gpt-4.1 \
-    --output_path results/geneturing_azure_gpt41_no_tools.json \
-    --tool_use False 
+    --output_path results/geneturing_azure_gpt41_no_tools.json
