@@ -9,6 +9,7 @@ import argparse
 import json
 import os
 import re
+import time
 
 import mlflow
 import pandas as pd
@@ -23,7 +24,9 @@ from tools import AVAILABLE_FUNCTIONS, tools_definition
 
 load_dotenv()
 
-MAX_TURNS = 10
+MAX_TURNS = 12
+MAX_RETRIES = 3  # Maximum number of retries for LLM calls
+RETRY_DELAY = 5  # Seconds to wait between retries
 
 
 class ResponseSchema(BaseModel):
@@ -57,7 +60,7 @@ def get_client(provider: str):
     if provider == "azure":
         client = AzureOpenAI(
             api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-            base_url=os.getenv("AZURE_OPENAI_API_ENDPOINT"),
+            azure_endpoint=os.getenv("AZURE_OPENAI_API_ENDPOINT"),
             api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
         )
         return client
@@ -124,31 +127,51 @@ def create_log_table(results: dict) -> None:
         return table_df
 
 
-def log_metrics(results_df: pd.DataFrame) -> None:
+def log_metrics(results_df: pd.DataFrame) -> dict:
     """Log the metrics to MLflow."""
     overall_accuracy = results_df["match"].mean()
     avg_levenshtein_distance = results_df["levenshtein_distance"].mean()
 
-    return {
-        "accuracy": overall_accuracy,
-        "average_levenshtein_distance": avg_levenshtein_distance,
+    metrics_to_log = {
+        "overall_accuracy": overall_accuracy,
+        "overall_average_levenshtein_distance": avg_levenshtein_distance,
     }
+
+    # Calculate metrics per category
+    if "category" in results_df.columns:
+        category_metrics = results_df.groupby("category").agg(
+            accuracy=("match", "mean"),
+            average_levenshtein_distance=("levenshtein_distance", "mean"),
+        )
+        for category, row in category_metrics.iterrows():
+            metrics_to_log[f"{category}_accuracy"] = row["accuracy"]
+            metrics_to_log[f"{category}_average_levenshtein_distance"] = row[
+                "average_levenshtein_distance"
+            ]
+
+    return metrics_to_log
 
 
 def call_llm(client: AzureOpenAI | OpenAI, model: str, question: str) -> str:
     """Call the LLM with a given question and return the response."""
 
     messages = make_messages(question, SYSTEM_PROMPT, FEW_SHOT_PROMPT)
-    try:
-        response = client.beta.chat.completions.parse(
-            model=model,
-            messages=messages,
-            response_format=ResponseSchema,
-        )
-        return response.choices[0].message.parsed
-    except Exception as e:
-        print(f"Error calling LLM: {e}")
-        return None
+    for attempt in range(MAX_RETRIES):
+        try:
+            response = client.beta.chat.completions.parse(
+                model=model,
+                messages=messages,
+                response_format=ResponseSchema,
+            )
+            return response.choices[0].message.parsed
+        except Exception as e:
+            print(f"Error calling LLM (attempt {attempt + 1}/{MAX_RETRIES}): {e}")
+            if attempt < MAX_RETRIES - 1:
+                time.sleep(RETRY_DELAY)
+            else:
+                print("Max retries reached. Failing.")
+                return None  # Or raise the exception e
+    return None # Should not be reached if MAX_RETRIES > 0
 
 
 def validate_response_schema(content: str) -> ResponseSchema:
@@ -252,21 +275,36 @@ def call_llm_with_tools(
     for turn in range(max_turns):
         print(f"\n--- Turn {turn + 1} ---")
 
-        # Make the LLM call
-        try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                tools=tools_definition,
-                tool_choice="auto",
+        response_message = None
+        for attempt in range(MAX_RETRIES):
+            try:
+                # Make the LLM call
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    tools=tools_definition,
+                    tool_choice="auto",
+                )
+                response_message = response.choices[0].message
+                break  # Success, exit retry loop
+            except Exception as e:
+                print(f"Error calling LLM (attempt {attempt + 1}/{MAX_RETRIES}) in turn {turn + 1}: {e}")
+                if attempt < MAX_RETRIES - 1:
+                    time.sleep(RETRY_DELAY)
+                else:
+                    print(f"Max retries reached for LLM call in turn {turn + 1}. Failing turn.")
+                    # Return an error response if all retries fail
+                    return ResponseSchema(
+                        thoughts=f"Error communicating with AI model after {MAX_RETRIES} retries in turn {turn +1}",
+                        answer=f"Error: {str(e)}",
+                    )
+        
+        if response_message is None: # Should only happen if all retries failed and loop finished
+             return ResponseSchema(
+                thoughts=f"Error communicating with AI model after {MAX_RETRIES} retries in turn {turn +1}. No response message.",
+                answer="Error: LLM call failed after multiple retries.",
             )
-            response_message = response.choices[0].message
-        except Exception as e:
-            print(f"Error calling LLM: {e}")
-            return ResponseSchema(
-                thoughts="Error communicating with AI model",
-                answer=f"Error: {str(e)}",
-            )
+
 
         # Handle the response
         if response_message.tool_calls:
@@ -422,8 +460,8 @@ def main():
         mlflow.log_table(data=table_data, artifact_file="tabular_results.json")
 
         # Log the metrics
-        metrics = log_metrics(table_data)
-        mlflow.log_metrics(metrics)
+        metrics_dict = log_metrics(table_data)
+        mlflow.log_metrics(metrics_dict)
 
         # Save the results
         save_json(results, args.output_path)
