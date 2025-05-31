@@ -1,0 +1,31 @@
+### Verify the contents of these scripts before running.
+# Gene-Turing
+scripts/geneturing_azure_gpt41_mini_no_tools.sh
+scripts/geneturing_azure_gpt41_mini_tools.sh
+scripts/geneturing_azure_gpt41_no_tools.sh
+scripts/geneturing_azure_gpt41_tools.sh
+scripts/geneturing_ollama_qwen3_4b_no_tools.sh
+scripts/geneturing_ollama_qwen3_4b_tools.sh
+
+# Gene-Turing Small
+scripts/geneturing_small_azure_gpt41_mini_no_tools.sh
+scripts/geneturing_small_azure_gpt41_no_tools.sh
+scripts/geneturing_small_azure_gpt41_tools.sh
+scripts/geneturing_small_ollama_qwen3_4b_no_tools.sh
+scripts/geneturing_small_ollama_qwen3_4b_tools.sh
+
+# Gene-Hop
+scripts/genehop_azure_gpt41_mini_no_tools.sh
+scripts/genehop_azure_gpt41_mini_tools.sh
+scripts/genehop_azure_gpt41_no_tools.sh
+scripts/genehop_azure_gpt41_tools.sh
+scripts/genehop_ollama_qwen3_4b_no_tools.sh
+scripts/genehop_ollama_qwen3_4b_tools.sh
+
+# Gene-Hop Small
+scripts/genehop_small_azure_gpt41_mini_no_tools.sh
+scripts/genehop_small_azure_gpt41_mini_tools.sh
+scripts/genehop_small_azure_gpt41_no_tools.sh
+scripts/genehop_small_azure_gpt41_tools.sh
+scripts/genehop_small_ollama_qwen3_4b_no_tools.sh
+scripts/genehop_small_ollama_qwen3_4b_tools.sh
