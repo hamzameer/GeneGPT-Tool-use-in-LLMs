@@ -1,0 +1,20 @@
+{
+    "Gene alias": {
+        "What is the official gene symbol of SNAT6?": "SLC38A6"
+    },
+    "Gene disease association": {
+        "What are genes related to Distal renal tubular acidosis?": "SLC4A1, ATP6V0A4"
+    },
+    "Gene location": {
+        "Which chromosome is TTTY7 gene located on human genome?": "chrY"
+    },
+    "Human genome DNA aligment": {
+        "Align the DNA sequence to the human genome:GGACAGCTGAGATCACATCAAGGATTCCAGAAAGAATTGGCACAGGATCATTCAAGATGCATCTCTCCGTTGCCCCTGTTCCTGGCTTTCCTTCAACTTCCTCAAAGGGGACATCATTTCGGAGTTTGGCTTCCA": "chr8:7081648-7081782"
+    },
+    "Multi-species DNA aligment": {
+        "Which organism does the DNA sequence come from:CGTACACCATTGGTGCCAGTGACTGTGGTCAATTCGGTAGAAGTAGAGGTAAAAGTGCTGTTCCATGGCTCAGTTGTAGTTATGATGGTGCTAGCAGTTGTTGGAGTTCTGATGACAATGACGGTTTCGTCAGTTG": "yeast"
+    },
+    "Gene name conversion": {
+        "Convert ENSG00000205403 to official gene symbol.": "CFI"
+    }
+}

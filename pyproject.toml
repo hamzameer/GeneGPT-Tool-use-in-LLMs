@@ -1,0 +1,42 @@
+[project]
+name = "genegpt-tool-use"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "black>=25.1.0",
+    "flake8>=7.2.0",
+    "isort>=6.0.1",
+    "levenshtein>=0.27.1",
+    "mlflow>=2.22.0",
+    "mypy>=1.16.0",
+    "openai>=1.82.1",
+    "pre-commit>=4.2.0",
+    "pydantic>=2.11.5",
+    "pytest>=8.3.5",
+    "python-dotenv>=1.1.0",
+    "ruff>=0.11.12",
+]
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"                   # makes isort + Black play nicely
+line_length = 88
+
+[tool.flake8]
+max-line-length = 88                # stay consistent
+extend-ignore = ["E203", "W503"]    # also matches Black's opinions
+per-file-ignores = [
+  "__init__.py:F401",               # silence 'unused import' in package inits
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true                       # OR choose some flags
+plugins = [
+  "pydantic.mypy",                  # example: extra plugin support
+]
+ignore_missing_imports = true       # keep CI green while you iterate
