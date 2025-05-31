@@ -11,6 +11,30 @@ def create_log_table(results: dict) -> pd.DataFrame | None:
             answer = details.get("answer")
             prediction = details.get("prediction")
             thoughts = details.get("thoughts")
+
+            exact_match = None
+            levenshtein_dist = None
+            partial_match_score = None
+
+            try:
+                exact_match = metrics.calculate_exact_match(answer, prediction)
+            except Exception as e:
+                print(f"Error calculating exact_match for question '{question}': {e}")
+
+            try:
+                levenshtein_dist = metrics.calculate_levenshtein_distance(
+                    answer, prediction
+                )
+            except Exception as e:
+                print(f"Error calculating levenshtein_distance for question '{question}': {e}")
+
+            try:
+                partial_match_score = metrics.calculate_partial_match(
+                    answer, prediction
+                )
+            except Exception as e:
+                print(f"Error calculating partial_match for question '{question}': {e}")
+
             table_data.append(
                 {
                     "category": category,
@@ -18,13 +42,9 @@ def create_log_table(results: dict) -> pd.DataFrame | None:
                     "ground_truth_answer": answer,
                     "thoughts": thoughts,
                     "prediction": prediction,
-                    "match": metrics.calculate_exact_match(answer, prediction),
-                    "levenshtein_distance": metrics.calculate_levenshtein_distance(
-                        answer, prediction
-                    ),
-                    "partial_match": metrics.calculate_partial_match(
-                        answer, prediction
-                    ),
+                    "match": exact_match,
+                    "levenshtein_distance": levenshtein_dist,
+                    "partial_match": partial_match_score,
                 }
             )
     if len(table_data) == 0:
