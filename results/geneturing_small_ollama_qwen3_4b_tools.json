@@ -1,0 +1,65 @@
+{
+    "Gene alias": {
+        "What is the official gene symbol of LMP10?": {
+            "answer": "PSMB10",
+            "thoughts": "The user is asking for the official gene symbol of LMP10. My plan is: 1. Use `esearch_ncbi` with `database='gene'` and `term='LMP10'` to find its UID. 2. Use `esummary_ncbi` with the UID to get gene details. 3. Extract the `nomenclaturesymbol` from the summary. This will be the answer.",
+            "prediction": "LMP10"
+        }
+    },
+    "Gene disease association": {
+        "What are genes related to Hemolytic anemia due to phosphofructokinase deficiency?": {
+            "answer": "PFKL",
+            "thoughts": "The user is asking for genes related to 'Hemolytic anemia due to phosphofructokinase deficiency'. My plan is: 1. Use `esearch_ncbi` with `database='omim'` and `term='Hemolytic anemia due to phosphofructokinase deficiency'` to find OMIM entries. 2. Use `esummary_ncbi` with the OMIM UIDs. 3. From the summaries, extract gene information, often in fields like `geneMap` or by parsing relevant text sections, to identify gene symbols.",
+            "prediction": "PFKP, PFKM, PFKC"
+        }
+    },
+    "Gene location": {
+        "Which chromosome is FAM66D gene located on human genome?": {
+            "answer": "chr8",
+            "thoughts": "The user is asking for the chromosomal location of the gene FAM66D. My plan is: 1. Use `esearch_ncbi` with `database='gene'` and `term='FAM66D'` to find its UID. 2. Use `esummary_ncbi` with the UID to get gene details. 3. Extract chromosome information (e.g., from a 'chromosome' field or 'genomicinfo') from the gene summary.",
+            "prediction": "chr11"
+        }
+    },
+    "Human genome DNA aligment": {
+        "Align the DNA sequence to the human genome:ATTCTGCCTTTAGTAATTTGATGACAGAGACTTCTTGGGAACCACAGCCAGGGAGCCACCCTTTACTCCACCAACAGGTGGCTTATATCCAATCTGAGAAAGAAAGAAAAAAAAAAAAGTATTTCTCT": {
+            "answer": "chr15:91950805-91950932",
+            "thoughts": "The user wants to align a DNA sequence to the human genome. My plan is: 1. Use `blast_put` with the provided DNA sequence, `program='blastn'`, and `database='nt'` to submit the sequence for alignment. 2. Use `blast_get` with the returned RID to retrieve the BLAST results. 3. Parse the results to identify the top hit's genomic location, which will be the answer.",
+            "prediction": "chr8:7081648-7081782"
+        }
+    },
+    "Multi-species DNA aligment": {
+        "Which organism does the DNA sequence come from:AGGGGCAGCAAACACCGGGACACACCCATTCGTGCACTAATCAGAAACTTTTTTTTCTCAAATAATTCAAACAATCAAAATTGGTTTTTTCGAGCAAGGTGGGAAATTTTTCGAT": {
+            "answer": "worm",
+            "thoughts": "The user is asking for the organism of the provided DNA sequence. My plan is: 1. Use `blast_put` with the sequence, `program='blastn'`, and `database='nt'` to submit the sequence for BLAST analysis. 2. Use `blast_get` with the returned RID to retrieve BLAST results. 3. Analyze the top hit's organism from the BLAST report.",
+            "prediction": "Homo sapiens"
+        }
+    },
+    "Gene name conversion": {
+        "Convert ENSG00000215251 to official gene symbol.": {
+            "answer": "FASTKD5",
+            "thoughts": "The user wants the official gene symbol for Ensembl ID ENSG00000215251. My plan is: 1. Use `esearch_ncbi` with `database='gene'` and `term='ENSG00000215251'` to find its UID. 2. Use `esummary_ncbi` with the UID to get gene details. 3. Extract the `nomenclaturesymbol` from the summary, which is the official gene symbol.",
+            "prediction": "SLC38A6"
+        }
+    },
+    "Protein-coding genes": {
+        "Is ATP5F1EP2 a protein-coding gene?": {
+            "answer": "NA",
+            "thoughts": "The user is asking if ATP5F1EP2 is a protein-coding gene. My plan is: 1. Use `esearch_ncbi` with `database='gene'` and `term='ATP5F1EP2'` to find its UID. 2. Use `esummary_ncbi` with the UID to get gene details. 3. Examine the summary for biotype or type fields to determine if it's protein-coding. If no results, state it's not found.",
+            "prediction": "NA"
+        }
+    },
+    "Gene SNP association": {
+        "Which gene is SNP rs1217074595 associated with?": {
+            "answer": "LINC01270",
+            "thoughts": "The user is asking for the gene associated with SNP rs1217074595. My plan is: 1. Use `esearch_ncbi` with `database='snp'` and `term='rs1217074595'` to find its UID. 2. Use `esummary_ncbi` with the UID to get SNP details. 3. Look for associated gene information (e.g., 'gene_name' or similar fields) in the SNP summary.",
+            "prediction": "LRRC23"
+        }
+    },
+    "SNP location": {
+        "Which chromosome does SNP rs1430464868 locate on human genome?": {
+            "answer": "chr13",
+            "thoughts": "The user is asking for the chromosome location of SNP rs1430464868. My plan is: 1. Use `esearch_ncbi` with `database='snp'` and `term='rs1430464868'` to find its UID. 2. Use `esummary_ncbi` with the UID to get SNP details. 3. Extract the chromosome information (e.g., 'chr' field) from the SNP summary.",
+            "prediction": "chr11"
+        }
+    }
+}

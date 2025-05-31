@@ -22,6 +22,9 @@ def create_log_table(results: dict) -> pd.DataFrame | None:
                     "levenshtein_distance": metrics.calculate_levenshtein_distance(
                         answer, prediction
                     ),
+                    "partial_match": metrics.calculate_partial_match(
+                        answer, prediction
+                    ),
                 }
             )
     if len(table_data) == 0:
@@ -36,10 +39,12 @@ def log_metrics(results_df: pd.DataFrame) -> dict:
     """Log the metrics to MLflow."""
     overall_accuracy = results_df["match"].mean()
     avg_levenshtein_distance = results_df["levenshtein_distance"].mean()
+    overall_partial_match_accuracy = results_df["partial_match"].mean()
 
     metrics_to_log = {
         "overall_accuracy": overall_accuracy,
         "overall_average_levenshtein_distance": avg_levenshtein_distance,
+        "overall_partial_match_accuracy": overall_partial_match_accuracy,
     }
 
     # Calculate metrics per category
@@ -47,11 +52,13 @@ def log_metrics(results_df: pd.DataFrame) -> dict:
         category_metrics = results_df.groupby("category").agg(
             accuracy=("match", "mean"),
             average_levenshtein_distance=("levenshtein_distance", "mean"),
+            partial_match_accuracy=("partial_match", "mean"),
         )
         for category, row in category_metrics.iterrows():
             metrics_to_log[f"{category}_accuracy"] = row["accuracy"]
             metrics_to_log[f"{category}_average_levenshtein_distance"] = row[
                 "average_levenshtein_distance"
             ]
+            metrics_to_log[f"{category}_partial_match_accuracy"] = row["partial_match_accuracy"]
 
     return metrics_to_log

@@ -3,6 +3,9 @@ llm_params:
 
 mlflow_tracking_uri: "http://localhost:5000"
 
+# Concurrent requests
+MAX_WORKERS: 10
+
 # Application behavior constants
 MAX_TURNS: 12
 MAX_RETRIES: 3

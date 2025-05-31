@@ -410,6 +410,7 @@ dependencies = [
     { name = "pytest" },
     { name = "python-dotenv" },
     { name = "ruff" },
+    { name = "tqdm" },
 ]
 
 [package.metadata]
@@ -426,6 +427,7 @@ requires-dist = [
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "ruff", specifier = ">=0.11.12" },
+    { name = "tqdm", specifier = ">=4.67.1" },
 ]
 
 [[package]]

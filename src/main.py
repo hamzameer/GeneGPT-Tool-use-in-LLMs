@@ -6,8 +6,9 @@ calls the respective LLM API, and appends the results to the dataset.
 """
 
 import argparse
-
+import concurrent.futures
 import mlflow
+from tqdm import tqdm
 
 from dotenv import load_dotenv
 
@@ -23,8 +24,56 @@ from .llm_interface import (
 DEFAULT_MAX_TURNS = 10
 DEFAULT_MAX_RETRIES = 3
 DEFAULT_RETRY_DELAY = 5
+DEFAULT_MAX_WORKERS = 10
 
 load_dotenv()
+
+
+def process_single_question(
+    client,
+    model_name: str,
+    question: str,
+    tool_use: bool,
+    max_turns: int,
+    max_retries: int,
+    retry_delay: int,
+    ground_truth_answer: str,
+) -> tuple[str, dict]:
+    """Helper function to process a single question. To be run in a thread."""
+    try:
+        if tool_use:
+            llm_response = call_llm_with_tools(
+                client,
+                model_name,
+                question,
+                max_turns,
+                max_retries,
+                retry_delay,
+            )
+        else:
+            llm_response = call_llm(
+                client, model_name, question, max_retries, retry_delay
+            )
+    except Exception as e:
+        print(f"Failed to call LLM for question '{question[:50]}...': {e}")
+        return question, {
+            "answer": ground_truth_answer,
+            "thoughts": f"Critical error in processing: {e}",
+            "prediction": "ERROR_PROCESSING",
+        }
+
+    if llm_response:
+        return question, {
+            "answer": ground_truth_answer,
+            "thoughts": llm_response.thoughts,
+            "prediction": llm_response.answer,
+        }
+    else:
+        return question, {
+            "answer": ground_truth_answer,
+            "thoughts": "LLM call returned no response after retries.",
+            "prediction": None,
+        }
 
 
 def process_dataset(
@@ -32,6 +81,7 @@ def process_dataset(
 ) -> dict:
     """
     Processes each question in the dataset using the LLM and appends results.
+    Uses ThreadPoolExecutor for concurrent question processing.
     """
     client = get_client(provider)
     results = {}
@@ -39,45 +89,50 @@ def process_dataset(
     max_turns = config.get("MAX_TURNS", DEFAULT_MAX_TURNS)
     max_retries = config.get("MAX_RETRIES", DEFAULT_MAX_RETRIES)
     retry_delay = config.get("RETRY_DELAY", DEFAULT_RETRY_DELAY)
+    max_workers = config.get("MAX_WORKERS", DEFAULT_MAX_WORKERS)
+    print(f"Using up to {max_workers} concurrent workers for question processing.")
 
+    all_questions_with_category = []
     for category, questions_answers in dataset.items():
-        print(f"\nProcessing category: {category}...")
         results[category] = {}
         for question, ground_truth_answer in questions_answers.items():
-            try:
-                if tool_use:
-                    llm_response = call_llm_with_tools(
-                        client,
-                        model_name,
-                        question,
-                        max_turns,
-                        max_retries,
-                        retry_delay,
-                    )
-                else:
-                    llm_response = call_llm(
-                        client, model_name, question, max_retries, retry_delay
-                    )
-            except Exception as e:
-                print(f"Failed to call LLM in process_dataset: {e}")
-                results[category][question] = {
-                    "answer": ground_truth_answer,
-                    "thoughts": f"Critical error in processing: {e}",
-                    "prediction": "ERROR_PROCESSING",
-                }
-                continue
+            all_questions_with_category.append(
+                (category, question, ground_truth_answer)
+            )
 
-            if llm_response:
-                results[category][question] = {
-                    "answer": ground_truth_answer,
-                    "thoughts": llm_response.thoughts,
-                    "prediction": llm_response.answer,
-                }
-            else:
-                results[category][question] = {
-                    "answer": ground_truth_answer,
-                    "thoughts": "LLM call returned no response after retries.",
-                    "prediction": None,
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_details = {
+            executor.submit(
+                process_single_question,
+                client,
+                model_name,
+                question,
+                tool_use,
+                max_turns,
+                max_retries,
+                retry_delay,
+                ground_truth_answer,
+            ): (category, question)
+            for category, question, ground_truth_answer in all_questions_with_category
+        }
+
+        for future in tqdm(
+            concurrent.futures.as_completed(future_to_details),
+            total=len(all_questions_with_category),
+            desc="Processing Questions",
+        ):
+            original_category, original_question_text = future_to_details[future]
+            try:
+                q_text_processed, q_result = future.result()
+                results[original_category][q_text_processed] = q_result
+            except Exception as exc:
+                print(
+                    f"Question '{original_question_text[:50]}...' generated an exception: {exc}"
+                )
+                results[original_category][original_question_text] = {
+                    "answer": dataset[original_category][original_question_text],
+                    "thoughts": f"Error during threaded execution: {exc}",
+                    "prediction": "ERROR_THREAD_EXECUTION",
                 }
     return results
 
@@ -139,20 +194,27 @@ def main():
     config = load_yaml(args.config_path)
     print(f"  Loaded config from {args.config_path}")
 
-    mlflow.openai.autolog()
-
+    # Configure MLflow tracking URI and experiment name first
     mlflow.set_tracking_uri(config["mlflow_tracking_uri"])
     mlflow.set_experiment("GeneGPT")
 
+    # Start the MLflow run
     with mlflow.start_run():
-        mlflow.log_params(vars(args))
+        # Activate autologging within the run context
+        mlflow.openai.autolog()
 
+        # Log all parameters within the run context
+        mlflow.log_params(vars(args))  # Logs command-line arguments
+
+        # Log parameters from config
         if "llm_params" in config:
             mlflow.log_params(config["llm_params"])
-
         mlflow.log_param("max_turns", config.get("MAX_TURNS", DEFAULT_MAX_TURNS))
         mlflow.log_param("max_retries", config.get("MAX_RETRIES", DEFAULT_MAX_RETRIES))
         mlflow.log_param("retry_delay", config.get("RETRY_DELAY", DEFAULT_RETRY_DELAY))
+        mlflow.log_param(
+            "max_workers", config.get("MAX_WORKERS", DEFAULT_MAX_WORKERS)
+        )
 
         data = load_json(args.dataset_path)
         mlflow.log_artifact(args.dataset_path)
@@ -178,6 +240,10 @@ def main():
             if "overall_average_levenshtein_distance" in metrics_dict:
                 print(
                     f"  Overall Average Levenshtein Distance: {metrics_dict['overall_average_levenshtein_distance']:.4f}"
+                )
+            if "overall_partial_match_accuracy" in metrics_dict:
+                print(
+                    f"  Overall Partial Match Accuracy: {metrics_dict['overall_partial_match_accuracy']:.4f}"
                 )
         else:
             print(
