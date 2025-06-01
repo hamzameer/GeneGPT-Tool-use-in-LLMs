@@ -156,7 +156,7 @@ Access the MLflow UI at `http://localhost:5000` to:
 - Monitor processing times and error rates
 - Export results for further analysis
 
-### Timing Benchmarks
+### Timing Benchmarks (5 concurrent workers)
 
 - **GeneHop Dataset**: ~Approximately~ 5 minutes with GPT-4.1 (Azure)
 - **GeneTuring Dataset**: ~Approximately~ 7 minutes with GPT-4.1 (Azure)
