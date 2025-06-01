@@ -10,4 +10,4 @@ python -m src.main \
     --provider azure \
     --model gpt-4.1-mini \
     --output_path results/geneturing_small_azure_gpt41_mini_tools.json \
-    --tool_use True
+    --tool-use

@@ -85,7 +85,7 @@ python -m src.main \
   --provider azure \
   --model gpt-4.1-mini \
   --output_path results/experiment_1.json \
-  --tool_use true
+  --tool-use
 ```
 
 **Run without tools (baseline comparison):**
@@ -95,11 +95,10 @@ python -m src.main \
   --provider azure \
   --model gpt-4.1-mini \
   --output_path results/baseline_1.json \
-  --tool_use false
+  # By default (or explicitly with --no-tool-use) it's false
 ```
 
 ## 📊 Available Datasets
-
 The project includes several benchmark datasets for evaluation:
 
 - **`geneturing_small.json`**: Subset of GeneTuring dataset for quick testing

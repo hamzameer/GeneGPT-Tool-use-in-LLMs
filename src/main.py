@@ -170,10 +170,10 @@ def main():
         required=True,
     )
     parser.add_argument(
-        "--tool_use",
-        type=bool,
+        "--tool-use",
+        action=argparse.BooleanOptionalAction,
         default=False,
-        help="Whether to use tools defined in tools.py. Default is False.",
+        help="Enable tool use (e.g., --tool-use). Disable with --no-tool-use. (default: disabled)",
     )
 
     parser.add_argument(
