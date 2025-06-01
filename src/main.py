@@ -212,9 +212,7 @@ def main():
         mlflow.log_param("max_turns", config.get("MAX_TURNS", DEFAULT_MAX_TURNS))
         mlflow.log_param("max_retries", config.get("MAX_RETRIES", DEFAULT_MAX_RETRIES))
         mlflow.log_param("retry_delay", config.get("RETRY_DELAY", DEFAULT_RETRY_DELAY))
-        mlflow.log_param(
-            "max_workers", config.get("MAX_WORKERS", DEFAULT_MAX_WORKERS)
-        )
+        mlflow.log_param("max_workers", config.get("MAX_WORKERS", DEFAULT_MAX_WORKERS))
 
         data = load_json(args.dataset_path)
         mlflow.log_artifact(args.dataset_path)

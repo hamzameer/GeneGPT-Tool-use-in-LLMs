@@ -66,8 +66,8 @@ def validate_response_schema(content: str) -> ResponseSchema:
         print(f"Warning: Could not parse response as valid JSON schema: {e}")
         # Return a default response if parsing fails
         return ResponseSchema(
-            thoughts="Could not parse response properly",
-            answer=None,  # Use the raw content as answer
+            thoughts=content_cleaned,
+            answer=content_cleaned,  # Use the raw content as answer
         )
 
 

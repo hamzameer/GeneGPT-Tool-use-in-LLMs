@@ -26,7 +26,9 @@ def create_log_table(results: dict) -> pd.DataFrame | None:
                     answer, prediction
                 )
             except Exception as e:
-                print(f"Error calculating levenshtein_distance for question '{question}': {e}")
+                print(
+                    f"Error calculating levenshtein_distance for question '{question}': {e}"
+                )
 
             try:
                 partial_match_score = metrics.calculate_partial_match(
@@ -79,6 +81,8 @@ def log_metrics(results_df: pd.DataFrame) -> dict:
             metrics_to_log[f"{category}_average_levenshtein_distance"] = row[
                 "average_levenshtein_distance"
             ]
-            metrics_to_log[f"{category}_partial_match_accuracy"] = row["partial_match_accuracy"]
+            metrics_to_log[f"{category}_partial_match_accuracy"] = row[
+                "partial_match_accuracy"
+            ]
 
     return metrics_to_log

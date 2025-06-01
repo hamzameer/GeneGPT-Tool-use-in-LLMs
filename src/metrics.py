@@ -35,15 +35,15 @@ def calculate_partial_match(ground_truth: str, prediction: str) -> float:
     if not ground_truth or ground_truth.isspace():
         return 0.0  # Or handle as an error/None, depending on desired behavior
 
-    gt_items = {item.strip() for item in ground_truth.split(',') if item.strip()}
-    if not gt_items: # Handles cases where ground_truth might be just commas like ",,"
+    gt_items = {item.strip() for item in ground_truth.split(",") if item.strip()}
+    if not gt_items:  # Handles cases where ground_truth might be just commas like ",,"
         return 0.0
 
     if not prediction or prediction.isspace():
         pred_items = set()
     else:
-        pred_items = {item.strip() for item in prediction.split(',') if item.strip()}
+        pred_items = {item.strip() for item in prediction.split(",") if item.strip()}
 
     common_items = gt_items.intersection(pred_items)
-    
+
     return len(common_items) / len(gt_items)
