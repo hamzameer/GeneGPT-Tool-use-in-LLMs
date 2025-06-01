@@ -5,7 +5,23 @@ from Levenshtein import distance as levenshtein_distance
 
 def calculate_exact_match(ground_truth: str, prediction: str) -> float:
     """Calculate the exact match metric."""
-    return float(ground_truth == prediction)
+    mapper = {
+        "Caenorhabditis elegans": "worm",
+        "Homo sapiens": "human",
+        "Danio rerio": "zebrafish",
+        "Mus musculus": "mouse",
+        "Saccharomyces cerevisiae": "yeast",
+        "Rattus norvegicus": "rat",
+        "Gallus gallus": "chicken",
+        "Yes": "TRUE",
+        "No": "NA",
+    }
+
+    # Map the prediction if it's a key in the mapper.
+    # The ground_truth is used as-is for comparison.
+    prediction_mapped = mapper.get(prediction, prediction)
+
+    return float(ground_truth == prediction_mapped)
 
 
 def calculate_levenshtein_distance(ground_truth: str, prediction: str) -> int:

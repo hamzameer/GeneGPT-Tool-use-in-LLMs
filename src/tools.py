@@ -428,53 +428,105 @@ def blast_put(
 def blast_get(rid: str, format_type: str = "Text") -> str:
     """
     Retrieves BLAST results using a Request ID (RID).
-    Waits 30 seconds before attempting to fetch results, as per NCBI guidelines.
+    Waits 30 seconds before attempting to fetch results, as per NCBI guidelines,
+    and then retries twice if the job is still processing.
     Returns a JSON string with the BLAST report or an error.
     """
     print(f"TOOL EXECUTING: blast_get with RID: {rid}, format_type: {format_type}")
-    print("Waiting 30 seconds for BLAST results as per NCBI guidelines...")
-    time.sleep(
-        30
-    )  # Wait for BLAST to process *before* acquiring semaphore for the GET request
+    print("Initial 30-second wait for BLAST results as per NCBI guidelines...")
+    time.sleep(30)  # Initial wait
 
-    params = {"CMD": "Get", "RID": rid, "FORMAT_TYPE": format_type}
-    with ncbi_semaphore:  # Acquire semaphore
-        time.sleep(NCBI_REQUEST_DELAY)  # Apply delay
-        try:
-            response = requests.get(
-                BLAST_BASE_URL, params=params, timeout=4 * NCBI_TIMEOUT
-            )  # Increased timeout
-            response.raise_for_status()
-            content = response.text
+    max_retries = 3  # Initial attempt + 2 retries
+    attempt_delay = 30  # Seconds to wait between retries
 
-            # Check for "Status=WAITING" or "Status=UNKNOWN"
-            if "Status=WAITING" in content or "Status=SEARCHING" in content:
-                print(f"TOOL RESULT: blast_get for RID {rid} is still processing.")
-                return json.dumps(
-                    {
-                        "status": "WAITING",
-                        "message": "BLAST job is still processing. Try again later.",
-                    }
+    for attempt in range(max_retries):
+        print(
+            f"Attempt {attempt + 1} of {max_retries} to fetch BLAST results for RID {rid}..."
+        )
+        params = {"CMD": "Get", "RID": rid, "FORMAT_TYPE": format_type}
+        with ncbi_semaphore:  # Acquire semaphore
+            time.sleep(NCBI_REQUEST_DELAY)  # Apply delay
+            try:
+                response = requests.get(
+                    BLAST_BASE_URL, params=params, timeout=4 * NCBI_TIMEOUT
+                )  # Increased timeout
+                response.raise_for_status()
+                content = response.text
+
+                if "Status=WAITING" in content or "Status=SEARCHING" in content:
+                    print(
+                        f"TOOL RESULT: blast_get for RID {rid} is still processing (Attempt {attempt + 1})."
+                    )
+                    if attempt < max_retries - 1:
+                        print(
+                            f"Waiting for {attempt_delay} seconds before next attempt..."
+                        )
+                        time.sleep(attempt_delay)
+                        continue  # Go to next attempt
+                    else:
+                        return json.dumps(
+                            {
+                                "status": "WAITING",
+                                "message": f"BLAST job for RID {rid} is still processing after {max_retries} attempts. Try again later.",
+                            }
+                        )
+
+                if "Status=FAILED" in content:
+                    error_msg = f"BLAST job for RID {rid} failed."
+                    message_match = re.search(r"Message=(.*)", content, re.DOTALL)
+                    if message_match:
+                        error_msg += f" NCBI Message: {message_match.group(1).strip().splitlines()[0]}"
+                    print(f"TOOL RESULT: {error_msg}")
+                    return json.dumps({"error": error_msg})
+
+                if "Status=UNKNOWN" in content:
+                    error_msg = f"BLAST job status for RID {rid} is UNKNOWN."
+                    message_match = re.search(r"Message=(.*)", content, re.DOTALL)
+                    if message_match:
+                        error_msg += f" NCBI Message: {message_match.group(1).strip().splitlines()[0]}"
+                    print(f"TOOL RESULT: {error_msg} (Attempt {attempt + 1})")
+                    if (
+                        attempt < max_retries - 1
+                    ):  # Allow one retry for UNKNOWN within the loop
+                        print(
+                            f"Waiting for {attempt_delay} seconds before retrying UNKNOWN status..."
+                        )
+                        time.sleep(attempt_delay)
+                        continue
+                    return json.dumps(
+                        {"error": error_msg + " after multiple attempts."}
+                    )
+
+                print(
+                    f"TOOL RESULT: blast_get successful for RID: {rid}. Content length: {len(content)}"
                 )
-            if "Status=FAILED" in content or "Status=UNKNOWN" in content:
-                error_msg = f"BLAST job for RID {rid} failed or status is unknown."
-                # Try to extract a more specific message if possible
-                message_match = re.search(r"Message=(.*)", content)
-                if message_match:
-                    error_msg += f" NCBI Message: {message_match.group(1).strip()}"
-                print(f"TOOL RESULT: {error_msg}")
-                return json.dumps({"error": error_msg})
+                return json.dumps({"report": content[:30000]})  # Truncate if very large
+            except requests.exceptions.RequestException as e:
+                print(
+                    f"TOOL ERROR: blast_get failed for RID {rid} on attempt {attempt + 1}: {e}"
+                )
+                if attempt < max_retries - 1:
+                    time.sleep(attempt_delay)
+                    continue
+                return json.dumps({"error": str(e)})
+            except Exception as e:  # General catch-all
+                print(
+                    f"TOOL ERROR: blast_get unexpected error for RID {rid} on attempt {attempt + 1}: {e}"
+                )
+                if attempt < max_retries - 1:
+                    time.sleep(attempt_delay)
+                    continue
+                return json.dumps({"error": f"An unexpected error occurred: {str(e)}"})
+        # Release semaphore implicitly at the end of 'with' block
 
-            print(
-                f"TOOL RESULT: blast_get successful for RID: {rid}. Content length: {len(content)}"
-            )
-            return json.dumps({"report": content[:30000]})  # Truncate if very large
-        except requests.exceptions.RequestException as e:
-            print(f"TOOL ERROR: blast_get failed for RID {rid}: {e}")
-            return json.dumps({"error": str(e)})
-        except Exception as e:  # General catch-all
-            print(f"TOOL ERROR: blast_get unexpected error for RID {rid}: {e}")
-            return json.dumps({"error": f"An unexpected error occurred: {str(e)}"})
+    # This part should ideally not be reached if logic above is correct,
+    # but serves as a fallback if all retries are exhausted and status was still WAITING/SEARCHING.
+    return json.dumps(
+        {
+            "status": "TIMEOUT_OR_MAX_RETRIES",
+            "message": f"BLAST job for RID {rid} did not complete after {max_retries} attempts. Please try again later.",
+        }
+    )
 
 
 AVAILABLE_FUNCTIONS = {

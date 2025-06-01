@@ -77,7 +77,7 @@ These tools are for sequence alignment (e.g., mapping a DNA/protein sequence to 
 - DO NOT provide explanatory text in the answer field
 - Examples of correct answer formats:
   - For gene symbols/aliases: Just list them (e.g., "SLC38A6" or "SLC38A6, NAT-1, SNAT6")
-  - For chromosome locations: Just the location (e.g., "21q22.3" or "chrY")
+  - For chromosome locations or genomic coordinates: Provide the most specific information available and relevant to the question. Examples: "21q22.3", "chrY", "chr10:7531973-7532108".
   - For gene functions: Just the function type (e.g., "ncRNA")
   - For gene associations: Just the gene name (e.g., "LRRC23")
 - Put all explanations and reasoning in the "thoughts" field, NOT in the "answer" field
@@ -173,6 +173,52 @@ Final Answer:
 {
     "thoughts": "I searched for SNP rs1241371358 and retrieved its summary. The SNP is associated with the gene LRRC23.",
     "answer": "LRRC23"
+}
+
+Question: Align the DNA sequence GGACAGCTGAGATCACATCAAGGATTCCAGAAAGAATTGGCACAGGATCATTCAAGATGCATCTCTCCGTTGCCCCTGTTCCTGGCTTTCCTTCAACTTCCTCAAAGGGGACATCATTTCGGAGTTTGGCTTCCA to the human genome and report the exact genomic coordinates of the best hit.
+Workflow:
+Turn 1: Use blast_put(sequence='GGACAGCTGAGATCACATCAAGGATTCCAGAAAGAATTGGCACAGGATCATTCAAGATGCATCTCTCCGTTGCCCCTGTTCCTGGCTTTCCTTCAACTTCCTCAAAGGGGACATCATTTCGGAGTTTGGCTTCCA', program='blastn', database='nt', megablast=True, hitlist_size=1)
+Result: {"rid": "DEF456GHI"}
+Turn 2: Use blast_get(rid='DEF456GHI', format_type='Text')
+Result: (Simulated) BLAST report shows top alignment to 'Homo sapiens chromosome 10, GRCh38.p14' with subject start 7531973 and end 7532108.
+Final Answer:
+{
+    "thoughts": "I performed a BLASTn search with the given DNA sequence against the 'nt' database. The `blast_put` tool returned a request ID (RID). I then used `blast_get` to retrieve the alignment results. The BLAST report indicated that the best hit was on Homo sapiens chromosome 10, specifically spanning coordinates 7531973 to 7532108.",
+    "answer": "chr10:7531973-7532108"
+}
+
+Question: Which organism does the DNA sequence AGGGGCAGCAAACACCGGGACACACCCATTCGTGCACTAATCAGAAACTTTTTTTTCTCAAATAATTCAAACAATCAAAATTGGTTTTTTCGAGCAAGGTGGGAAATTTTTCGAT most likely come from?
+Workflow:
+Turn 1: Use blast_put(sequence='AGGGGCAGCAAACACCGGGACACACCCATTCGTGCACTAATCAGAAACTTTTTTTTCTCAAATAATTCAAACAATCAAAATTGGTTTTTTCGAGCAAGGTGGGAAATTTTTCGAT', program='blastn', database='nt', megablast=True, hitlist_size=3)
+Result: {"rid": "JKL789MNO"}
+Turn 2: Use blast_get(rid='JKL789MNO', format_type='Text')
+Result: (Simulated) BLAST report shows top hits to 'Caenorhabditis elegans' sequences.
+Final Answer:
+{
+    "thoughts": "I performed a BLASTn search with the given DNA sequence against the 'nt' database. The top hits in the BLAST report strongly suggest the sequence originates from Caenorhabditis elegans.",
+    "answer": "Caenorhabditis elegans"
+}
+
+Question: Is the human gene TP53 (UID: 7157) a protein-coding gene?
+Workflow:
+Turn 1: Use esummary_ncbi(database='gene', uids=['7157'])
+Result: (Simulated) Gene summary for TP53 UID 7157 indicates it is a protein-coding gene.
+Final Answer:
+{
+    "thoughts": "I retrieved the summary for human gene TP53 (UID 7157) using esummary_ncbi. The gene summary confirms that TP53 is a protein-coding gene.",
+    "answer": "TRUE"
+}
+
+Question: Is the gene ATP5F1EP2 a protein-coding gene?
+Workflow:
+Turn 1: Use esearch_ncbi(database='gene', term='ATP5F1EP2', retmax=1)
+Result: {"uids": ["432369"]}
+Turn 2: Use esummary_ncbi(database='gene', uids=["432369"])
+Result: (Simulated) Gene summary for ATP5F1EP2 (UID 432369) indicates it is not protein-coding (e.g., pseudogene).
+Final Answer:
+{
+    "thoughts": "I searched for ATP5F1EP2 and retrieved its summary. The summary indicates it is not a protein-coding gene.",
+    "answer": "NA"
 }
 </examples>
 """

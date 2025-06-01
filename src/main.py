@@ -63,6 +63,7 @@ def process_single_question(
         }
 
     if llm_response:
+        print(f"LLM response: {llm_response.answer}")
         return question, {
             "answer": ground_truth_answer,
             "thoughts": llm_response.thoughts,
@@ -94,8 +95,10 @@ def process_dataset(
 
     all_questions_with_category = []
     for category, questions_answers in dataset.items():
+        print(f"Processing category: {category}")
         results[category] = {}
         for question, ground_truth_answer in questions_answers.items():
+            print(f"Processing question: {question}")
             all_questions_with_category.append(
                 (category, question, ground_truth_answer)
             )
