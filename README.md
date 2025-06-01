@@ -148,6 +148,8 @@ All experiments are automatically tracked with:
 - **Performance metrics** (accuracy, processing time)
 - **Tool usage statistics**
 - **Error rates** and failure modes
+- **Comprehensive tracing** of API calls, responses and tool usage
+- **Artifacts** of the dataset, results and logs
 
 Access the MLflow UI at `http://localhost:5000` to:
 - Compare model performance across different configurations
