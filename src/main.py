@@ -34,6 +34,7 @@ def process_single_question(
     model_name: str,
     question: str,
     tool_use: bool,
+    use_web_search: bool,
     max_turns: int,
     max_retries: int,
     retry_delay: int,
@@ -49,6 +50,7 @@ def process_single_question(
                 max_turns,
                 max_retries,
                 retry_delay,
+                use_web_search,
             )
         else:
             llm_response = call_llm(
@@ -78,7 +80,12 @@ def process_single_question(
 
 
 def process_dataset(
-    provider: str, model_name: str, dataset: dict, tool_use: bool, config: dict
+    provider: str,
+    model_name: str,
+    dataset: dict,
+    tool_use: bool,
+    use_web_search: bool,
+    config: dict,
 ) -> dict:
     """
     Processes each question in the dataset using the LLM and appends results.
@@ -111,6 +118,7 @@ def process_dataset(
                 model_name,
                 question,
                 tool_use,
+                use_web_search,
                 max_turns,
                 max_retries,
                 retry_delay,
@@ -180,6 +188,13 @@ def main():
     )
 
     parser.add_argument(
+        "--web-search",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Enable the web_search tool (use with --web-search). Disable with --no-web-search.",
+    )
+
+    parser.add_argument(
         "--config_path",
         type=str,
         default="src/config.yaml",
@@ -193,6 +208,7 @@ def main():
     print(f"  Model: {args.model}")
     print(f"  Output Path: {args.output_path}")
     print(f"  Tool Use: {args.tool_use}")
+    print(f"  Web Search: {args.web_search}")
 
     config = load_yaml(args.config_path)
     print(f"  Loaded config from {args.config_path}")
@@ -222,7 +238,12 @@ def main():
         print(f"Loaded {len(data)} entries from {args.dataset_path}")
 
         results = process_dataset(
-            args.provider, args.model, data, args.tool_use, config
+            args.provider,
+            args.model,
+            data,
+            args.tool_use,
+            args.web_search,
+            config,
         )
         print(f"Processed {len(results)} entries")
 

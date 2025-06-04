@@ -6,7 +6,7 @@ import time
 from openai import AzureOpenAI, OpenAI
 from .models import ResponseSchema
 from .prompts import FEW_SHOT_PROMPT, SYSTEM_PROMPT, TOOL_USE_SYSTEM_PROMPT
-from .tools import AVAILABLE_FUNCTIONS, tools_definition
+from .tools import AVAILABLE_FUNCTIONS, get_tools_definition
 
 
 def get_client(provider: str):
@@ -199,8 +199,15 @@ def call_llm_with_tools(
     max_turns: int,
     max_retries: int,
     retry_delay: int,
+    use_web_search: bool,
 ) -> ResponseSchema:
-    """Call the LLM with tools and return a validated ResponseSchema."""
+    """Call the LLM with tools and return a validated ResponseSchema.
+
+    Parameters
+    ----------
+    use_web_search : bool
+        If False, the ``web_search`` tool will be excluded from the tool list.
+    """
     messages = make_messages_tool_use(question, TOOL_USE_SYSTEM_PROMPT, FEW_SHOT_PROMPT)
 
     for turn in range(max_turns):
@@ -213,7 +220,7 @@ def call_llm_with_tools(
                 response = client.chat.completions.create(
                     model=model,
                     messages=messages,
-                    tools=tools_definition,
+                    tools=get_tools_definition(use_web_search),
                     tool_choice="auto",
                 )
                 response_message = response.choices[0].message
@@ -270,7 +277,9 @@ def call_llm_with_tools(
         final_response = client.chat.completions.create(
             model=model,
             messages=messages,  # Use the accumulated conversation history
-            tools=tools_definition,  # Still provide tool definitions as context, but restrict choice
+            tools=get_tools_definition(
+                use_web_search
+            ),  # Still provide tool definitions as context, but restrict choice
             tool_choice="none",  # Instruct the LLM not to call any tools
         )
         final_response_message = final_response.choices[0].message

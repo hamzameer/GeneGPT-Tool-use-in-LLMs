@@ -86,6 +86,7 @@ python -m src.main \
   --model gpt-4.1-mini \
   --output_path results/experiment_1.json \
   --tool-use
+  --web-search
 ```
 
 **Run without tools (baseline comparison):**
@@ -96,6 +97,7 @@ python -m src.main \
   --model gpt-4.1-mini \
   --output_path results/baseline_1.json \
   # By default (or explicitly with --no-tool-use) it's false
+  # Web search is also disabled unless --web-search is provided
 ```
 
 ## 📊 Available Datasets
@@ -115,6 +117,9 @@ The project includes several benchmark datasets for evaluation:
 ### BLAST Tools
 - **`blast_put`**: Submit sequences for similarity searching
 - **`blast_get`**: Retrieve BLAST results with customizable output formats
+
+### Web Utilities
+- **`web_search`**: Search the web via DuckDuckGo and return top links
 
 ### Supported Databases
 - **Gene**: Human gene information and annotations

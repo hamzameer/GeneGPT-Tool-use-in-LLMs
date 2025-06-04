@@ -195,6 +195,30 @@ tools_definition = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "web_search",
+            "description": "Perform a simple web search using DuckDuckGo and return the top results.",
+            "strict": True,
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Search query string",
+                    },
+                    "max_results": {
+                        "type": "integer",
+                        "description": "Maximum number of search results to return",
+                        "default": 5,
+                    },
+                },
+                "required": ["query", "max_results"],
+                "additionalProperties": False,
+            },
+        },
+    },
 ]
 
 # --- NCBI E-utils Tool Definitions (Python Functions) ---
@@ -529,10 +553,39 @@ def blast_get(rid: str, format_type: str = "Text") -> str:
     )
 
 
+def web_search(query: str, max_results: int = 5) -> str:
+    """Perform a simple DuckDuckGo web search."""
+    print(f"TOOL EXECUTING: web_search with query: {query}, max_results: {max_results}")
+    params = {"q": query, "format": "json", "no_redirect": 1, "no_html": 1}
+    try:
+        response = requests.get("https://duckduckgo.com/", params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        results = []
+        for topic in data.get("RelatedTopics", []):
+            if len(results) >= max_results:
+                break
+            if isinstance(topic, dict) and "Text" in topic and "FirstURL" in topic:
+                results.append({"title": topic["Text"], "url": topic["FirstURL"]})
+        print(f"TOOL RESULT: web_search returning {len(results)} results")
+        return json.dumps({"results": results})
+    except Exception as e:
+        print(f"TOOL ERROR: web_search failed: {e}")
+        return json.dumps({"error": str(e)})
+
+
 AVAILABLE_FUNCTIONS = {
     "esearch_ncbi": esearch_ncbi,
     "esummary_ncbi": esummary_ncbi,
     "efetch_ncbi": efetch_ncbi,
     "blast_put": blast_put,
     "blast_get": blast_get,
+    "web_search": web_search,
 }
+
+
+def get_tools_definition(use_web_search: bool = False) -> list:
+    """Return tool definitions, optionally excluding web_search."""
+    if use_web_search:
+        return tools_definition
+    return [t for t in tools_definition if t["function"]["name"] != "web_search"]
