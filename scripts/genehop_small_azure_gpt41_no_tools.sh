@@ -10,4 +10,4 @@ python -m src.main \
     --provider azure \
     --model gpt-4.1 \
     --output_path results/genehop_small_azure_gpt41_no_tools.json \
-    --tool_use False 
+    --no-tool-use 
