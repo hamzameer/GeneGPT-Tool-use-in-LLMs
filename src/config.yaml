@@ -1,7 +1,7 @@
 llm_params:
   temperature: 0.7
 
-mlflow_tracking_uri: "http://localhost:5000"
+mlflow_tracking_uri: "http://198.215.61.34:8153/"
 
 # Concurrent requests
 MAX_WORKERS: 5

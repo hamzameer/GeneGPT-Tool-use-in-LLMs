@@ -17,14 +17,14 @@ This project implements the concepts from the GeneGPT paper, leveraging advanced
 ## ✨ Key Features
 
 ### 🔧 **Comprehensive NCBI API Integration**
-- **E-utilities Suite**: Search and retrieve data from PubMed, Gene, SNP, and OMIM databases
+- **E-utilities Suite**: Search and retrieve data from, Gene, SNP, and OMIM databases
 - **BLAST Integration**: Perform sequence similarity searches with support for multiple programs (blastn, blastp, blastx, tblastn, tblastx)
 - **Intelligent Rate Limiting**: Built-in semaphore controls and request delays to respect NCBI guidelines
 
 ### 🛠️ **Advanced Tool Architecture**
-- **Structured Output Parsing**: Robust parsing of JSON, XML, and text data from bioinformatics APIs
-- **Tool Orchestration**: Smart selection and chaining of appropriate tools based on question context
-- **Error Handling**: Comprehensive retry mechanisms and graceful degradation
+- **Structured Outputs**: Robust parsing of JSON, XML, and text data from bioinformatics APIs 
+- **Tool Routing**: Chained tool-use based on question context
+- **Error Handling**: Comprehensive retry mechanisms
 
 ### ⚡ **High-Performance Processing**
 - **Concurrent Question Processing**: Multi-threaded execution with configurable worker pools

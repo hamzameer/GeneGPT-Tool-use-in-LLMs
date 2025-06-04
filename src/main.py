@@ -199,7 +199,7 @@ def main():
 
     # Configure MLflow tracking URI and experiment name first
     mlflow.set_tracking_uri(config["mlflow_tracking_uri"])
-    mlflow.set_experiment("GeneGPT")
+    mlflow.set_experiment("GeneTuring(Ameer) - example")
 
     # Start the MLflow run
     with mlflow.start_run():
